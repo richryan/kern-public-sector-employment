@@ -1,0 +1,48 @@
+---
+title: "Public-sector employment in Kern County, California"
+author: "Rich Ryan"
+format:
+  pdf:
+    toc: false
+    number-sections: true
+    colorlinks: true
+# format:
+#   docx:
+#     toc: false
+#     number-sections: true
+#     highlight-style: github
+fig-cap-location: bottom
+---
+
+```{r}
+#| echo: false
+#| include: false
+library(targets)
+source("R/packages.R")
+```
+
+# Introduction
+
+# Public-sector employment in Kern County, California
+
+```{r}
+#| echo: false
+#| label: fig-empl
+#| fig-cap: "Public-sector employment in Kern County, California."
+tar_load(plt_empl)
+plt_empl
+```
+
+
+```{r}
+#| echo: false
+#| label: fig-shares
+#| fig-cap: "Public-sector employment in Kern County, California."
+tar_load(plt_shares)
+plt_shares
+```
+
+
+# Average weekly wages in public-sector jobs
+
+# Conclusion

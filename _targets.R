@@ -1,4 +1,5 @@
 library(targets)
+library(tarchetypes)
 
 # Load packages for the project
 tar_source("R/packages.R")
@@ -31,6 +32,8 @@ list(
   tar_target(dat_empl, make_public_sector_empl(dat_qcew_kern = dat_qcew_kern)),
   tar_target(dat_wages, make_wages(dat_qcew_kern, dat_pce_deflator)),
   tar_target(plt_empl, plot_empl(dat_empl, recess_wide)),
-  tar_target(plt_shares, plot_empl(dat_empl, recess_wide))
+  tar_target(plt_shares, plot_shares(dat_empl, recess_wide)),
+  tar_target(plt_wages, plot_wages(dat_wages, recess_wide)),
+  tar_quarto(report, path = "kern-public-sector-employment.qmd") # , quarto_args = c("quiet = FALSE")
 )
 

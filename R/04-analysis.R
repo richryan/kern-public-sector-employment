@@ -192,6 +192,9 @@ plot_shares <- function(dat_empl, recess_wide) {
   dat_shares_end <- dat_shares |>
     filter(date == max(date))
   
+  chart_begin <- min(dat_shares$date)
+  chart_end <- max(dat_shares$date)
+  
   ggplot(data = filter(dat_shares, own_title != "Private")) +
     geom_rect(
       data = filter(recess_wide, begin >= chart_begin, begin <= chart_end),
@@ -211,7 +214,7 @@ plot_shares <- function(dat_empl, recess_wide) {
         color = own_title,
         linetype = own_title
       ),
-      linewidth = 1.0,
+      linewidth = 0.9,
       show.legend = FALSE
     ) +
     geom_text_repel(
@@ -228,8 +231,90 @@ plot_shares <- function(dat_empl, recess_wide) {
     ) +
     theme_minimal() +
     scale_color_viridis_d(begin = 0.0, end = 0.8) +
-    labs(x = "", y = "")
+    labs(x = "", y = "", title = "Kern, public-sector employment as % of total employment")
 }
+
+plot_wages <- function(dat_wages, recess_wide) {
+  dat_wages_plt <- dat_wages$dat_wages |>
+    filter(own_title != "Total Covered")
+  
+  dat_wages_plt_lbl <- dat_wages_plt |>
+    filter(date == yq("2003-01"))
+  
+  dat_wages_plt_end <- dat_wages_plt |>
+    filter(date == max(date)) |>
+    mutate(mylabel = prettyNum(round(avg_wkly_wage, 0), big.mark = ","))
+  
+  chart_begin <- min(dat_wages_plt$date)
+  chart_end <- max(dat_wages_plt$date)
+  
+  ggplot(data = dat_wages_plt) +
+    geom_rect(
+      data = filter(recess_wide, begin >= chart_begin, begin <= chart_end),
+      mapping = aes(
+        xmin = begin,
+        xmax = end,
+        ymin = -Inf,
+        ymax = Inf
+      ),
+      fill = "blue",
+      alpha = 0.2
+    ) +
+    geom_line(
+      mapping = aes(
+        x = date,
+        y = avg_wkly_wage,
+        color = own_title,
+        linetype = own_title
+      ),
+      show.legend = FALSE,
+      linewidth = 0.8
+    ) +
+    geom_label_repel(data = dat_wages_plt_lbl,
+                     mapping = aes(x = date, y = avg_wkly_wage, label = own_title)) +
+    geom_text_repel(data = dat_wages_plt_end,
+                    mapping = aes(x = date, y = avg_wkly_wage, label = mylabel)) +
+    labs(x = "", y = "Today's dollars", title = "Kern, average weekly wages") +
+    theme_minimal() +
+    scale_color_viridis_d(begin = 0.0, end = 0.9) +
+    scale_y_continuous(labels = scales::label_comma())
+}
+
+# tar_load(dat_wages)
+# 
+# dat_wages_plt <- dat_wages$dat_wages |> 
+#   filter(own_title != "Total Covered")
+# 
+# dat_wages_plt_lbl <- dat_wages_plt |> 
+#   filter(date == yq("2003-01"))
+# 
+# dat_wages_plt_end <- dat_wages_plt |> 
+#   filter(date == max(date)) |> 
+#   mutate(mylabel = prettyNum(round(avg_wkly_wage, 0), big.mark = ","))
+# 
+# chart_begin <- min(dat_wages_plt$date)
+# chart_end <- max(dat_wages_plt$date)
+# 
+# ggplot(data = dat_wages_plt) +
+#   geom_rect(
+#     data = filter(recess_wide, begin >= chart_begin, begin <= chart_end),
+#     mapping = aes(
+#       xmin = begin,
+#       xmax = end,
+#       ymin = -Inf,
+#       ymax = Inf
+#     ),
+#     fill = "blue",
+#     alpha = 0.2
+#   ) +
+#   geom_line(mapping = aes(x = date, y = avg_wkly_wage, color = own_title, linetype = own_title), show.legend = FALSE, linewidth = 0.8) +
+#   geom_label_repel(data = dat_wages_plt_lbl, mapping = aes(x = date, y = avg_wkly_wage, label = own_title)) +
+#   geom_text_repel(data = dat_wages_plt_end, mapping = aes(x = date, y = avg_wkly_wage, 
+#                                                           label = mylabel)) +
+#   labs(x = "", y = "Today's dollars", title = "Kern, average weekly wages") +
+#   theme_minimal() +
+#   scale_color_viridis_d(begin = 0.0, end = 0.9) +
+#   scale_y_continuous(labels = scales::label_comma())
 
 # tar_load(recess_wide)
 # tar_load(dat_empl)
