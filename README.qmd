@@ -10,6 +10,8 @@ format: gfm
 How many public-sector jobs are there in Kern County, California?
 This question is answered using data from the Quarterly Census of Employment and Wages.
 
+## Data on public-sector employment in Kern County, California
+
 ## Posit Cloud and GitHub
 
 The project was completed using Posit Cloud.
@@ -26,26 +28,19 @@ Here is the procedure I used to interact with GitHub through Posit Cloud:
   * Under **Token name**, enter a name for the token.
   * Under **Expiration**, select an expiration for the token.
   * Optionally, under **Description**, add a note to describe the purpose of the token.
-* Saved the personal access token using `gitcreds::gitcreds_set()`.
+* Save the personal access token using `gitcreds::gitcreds_set()`.
 * Check the configuration of credentials: `git config -- list`.
 Confirm that credentials are stored.
 (And perhaps run `git config --global credential.helper store`.)
 
 These steps should let Posit Cloud push and pull from GitHub.
   
-## Running Code
+## API key in .Renviron
 
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+Data are retrieved from [FRED](https://fred.stlouisfed.org/) using their API (Application Programming Interface) service.
+Using the service requires registering an API key with FRED.
+The API key can then be saved in the `.Renviron` file.
 
-```{r}
-1 + 1
-```
-
-You can add options to executable code like this
-
-```{r}
-#| echo: false
-2 * 2
-```
-
-The `echo: false` option disables the printing of code (only output is displayed).
+* Include `FRED_API_KEY=my-api-key` in the `.Renviron` file using the command
+`usethis::edit_r_environ()`.
+* Restart the R session.
