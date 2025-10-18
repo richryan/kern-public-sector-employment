@@ -1,0 +1,55 @@
+# PROJECT: kern-public-sector-employment
+Rich Ryan
+
+## Public-sector employment in Kern County, California
+
+How many public-sector jobs are there in Kern County, California? This
+question is answered using data from the Quarterly Census of Employment
+and Wages.
+
+## Posit Cloud and GitHub
+
+The project was completed using Posit Cloud. If you are interested in
+interacting with GitHub using Posit Cloud, then these notes may be
+useful to you.
+
+Here is the procedure I used to interact with GitHub through Posit
+Cloud:
+
+- Create a [fine-grained personal access
+  token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#fine-grained-personal-access-tokens).
+  - In the upper-right corner of any page on GitHub, click your profile
+    photo, then click **Settings**
+  - In the left sidebar, click **Developer** settings (at the bottom).
+  - In the left sidebar, under **Personal access tokens**, click
+    **Fine-grained tokens**.
+  - Click **Generate new token**.
+  - Under **Token name**, enter a name for the token.
+  - Under **Expiration**, select an expiration for the token.
+  - Optionally, under **Description**, add a note to describe the
+    purpose of the token.
+- Saved the personal access token using `gitcreds::gitcreds_set()`.
+- Check the configuration of credentials: `git config -- list`. Confirm
+  that credentials are stored. (And perhaps run
+  `git config --global credential.helper store`.)
+
+These steps should let Posit Cloud push and pull from GitHub.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that
+includes both content and the output of embedded code. You can embed
+code like this:
+
+``` r
+1 + 1
+```
+
+    [1] 2
+
+You can add options to executable code like this
+
+    [1] 4
+
+The `echo: false` option disables the printing of code (only output is
+displayed).
