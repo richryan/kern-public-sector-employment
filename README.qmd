@@ -1,8 +1,12 @@
 ---
-title: "README"
+title: "PROJECT: kern-public-sector-employment"
 author: "Rich Ryan"
 format: gfm
 ---
+
+## Public-sector employment in Kern County, California
+
+
 
 ## Posit Cloud and GitHub
 
