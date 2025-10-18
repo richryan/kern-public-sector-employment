@@ -28,5 +28,5 @@ dat_pce_deflator <- dat_pce_deflator |>
   mutate(pce_deflator = 100 * pce_deflator / pce_indx)
 
 # Save series
-fout <- paste0("dat_", file_prg, "_pce-deflator.csv")
+fout <- paste0("dat_", file_prg, "_pce-deflator", "_", today(), ".csv")
 write_csv(dat_pce_deflator, file = here("dta", "cln", fout))

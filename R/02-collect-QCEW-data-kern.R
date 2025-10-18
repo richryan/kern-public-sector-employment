@@ -16,5 +16,5 @@ dat_all_list <- map(kern_files, read_in_qcew_files)
 dat_all <- list_rbind(dat_all_list)
 
 # Save the dataset
-fout <- paste0("dat_", file_prg, ".csv")
+fout <- paste0("dat_", file_prg, "_", today(), ".csv")
 write_csv(dat_all, file = here("dta", "cln", fout))
