@@ -136,9 +136,9 @@ plot_empl <- function(dat_empl, recess_wide) {
   
   dat_lbl <- dat_plt |>
     filter(date == ymd("2003-01-01")) |>
-    mutate(mylabel = own_title)
+    mutate(mylabel = str_to_sentence(own_title))
   
-  ggplot(data = dat_plt) +
+  plt_empl <- ggplot(data = dat_plt) +
     geom_rect(
       data = filter(recess_wide, begin >= chart_begin, begin <= chart_end),
       mapping = aes(
@@ -150,6 +150,7 @@ plot_empl <- function(dat_empl, recess_wide) {
       fill = "blue",
       alpha = 0.2
     ) +
+    geom_hline(yintercept = 0.0, color = "black") +
     geom_line(
       mapping = aes(
         x = date,
@@ -157,7 +158,7 @@ plot_empl <- function(dat_empl, recess_wide) {
         color = fct_reorder2(own_title, date, empl),
         linetype = fct_reorder2(own_title, date, empl)
       ),
-      linewidth = 1.1,
+      linewidth = 0.9,
       show.legend = FALSE
     ) +
     geom_text_repel(data = dat_lbl_end,
@@ -166,15 +167,18 @@ plot_empl <- function(dat_empl, recess_wide) {
                       y = empl / 1000,
                       label = mylabel
                     )) +
-    geom_label_repel(data = dat_lbl,
+    geom_text_repel(data = dat_lbl,
                      mapping = aes(
                        x = date,
                        y = empl / 1000,
-                       label = mylabel
-                     )) +
+                       label = mylabel,
+                       color = fct_reorder2(own_title, date, empl)
+                     ), nudge_y = c(0, -20, 50, 20), show.legend = FALSE) +
     labs(x = "", y = "Thousands of persons", title = "Employment in Kern County, California") +
     theme_minimal() +
-    scale_color_viridis_d(begin = 0.0, end = 0.9)
+    scale_color_viridis_d(begin = 0.0, end = 0.8)
+  
+  return(list(plt = plt_empl, dat = dat_plt))
 }
 
 plot_shares <- function(dat_empl, recess_wide) {
@@ -195,7 +199,9 @@ plot_shares <- function(dat_empl, recess_wide) {
   chart_begin <- min(dat_shares$date)
   chart_end <- max(dat_shares$date)
   
-  ggplot(data = filter(dat_shares, own_title != "Private")) +
+  dat_plt <- filter(dat_shares, own_title != "Private")
+  
+  plt_shares <- ggplot(data = dat_plt) +
     geom_rect(
       data = filter(recess_wide, begin >= chart_begin, begin <= chart_end),
       mapping = aes(
@@ -207,6 +213,7 @@ plot_shares <- function(dat_empl, recess_wide) {
       fill = "blue",
       alpha = 0.2
     ) +
+    geom_hline(yintercept = 0.0, color = "black") +
     geom_line(
       mapping = aes(
         x = date,
@@ -225,14 +232,24 @@ plot_shares <- function(dat_empl, recess_wide) {
         label = paste0(round(share, 1))
       )
     ) +
-    geom_label_repel(
+    geom_text_repel(
       data = filter(dat_shares_lbl, own_title != "Private"),
-      mapping = aes(x = date, y = share, label = own_title)
+      mapping = aes(x = date, y = share, label = str_to_sentence(own_title), colour = own_title), 
+      nudge_y = c(6, -2, 4),
+      show.legend = FALSE
     ) +
     theme_minimal() +
-    scale_color_viridis_d(begin = 0.0, end = 0.8) +
+    scale_color_viridis_d(begin = 0.0, end = 0.7) +
     labs(x = "", y = "", title = "Kern, public-sector employment as % of total employment")
+  
+  return(list(plt = plt_shares, dat = dat_plt))
 }
+
+# tar_load(dat_wages)
+# tar_load(recess_wide)
+# 
+# junk <- plot_wages(dat_wages, recess_wide)
+# junk$plt
 
 plot_wages <- function(dat_wages, recess_wide) {
   dat_wages_plt <- dat_wages$dat_wages |>
@@ -248,7 +265,7 @@ plot_wages <- function(dat_wages, recess_wide) {
   chart_begin <- min(dat_wages_plt$date)
   chart_end <- max(dat_wages_plt$date)
   
-  ggplot(data = dat_wages_plt) +
+  plt <- ggplot(data = dat_wages_plt) +
     geom_rect(
       data = filter(recess_wide, begin >= chart_begin, begin <= chart_end),
       mapping = aes(
@@ -270,51 +287,17 @@ plot_wages <- function(dat_wages, recess_wide) {
       show.legend = FALSE,
       linewidth = 0.8
     ) +
-    geom_label_repel(data = dat_wages_plt_lbl,
-                     mapping = aes(x = date, y = avg_wkly_wage, label = own_title)) +
+    geom_text_repel(data = dat_wages_plt_lbl,
+                    mapping = aes(x = date, y = avg_wkly_wage, label = own_title, color = own_title),
+                    nudge_y = c(300, 200, -200, -100),
+                    show.legend = FALSE) +
     geom_text_repel(data = dat_wages_plt_end,
                     mapping = aes(x = date, y = avg_wkly_wage, label = mylabel)) +
     labs(x = "", y = "Today's dollars", title = "Kern, average weekly wages") +
     theme_minimal() +
-    scale_color_viridis_d(begin = 0.0, end = 0.9) +
+    scale_color_viridis_d(begin = 0.0, end = 0.8) +
     scale_y_continuous(labels = scales::label_comma())
+  
+  return(list(plt = plt, dat = dat_wages_plt))
 }
 
-# tar_load(dat_wages)
-# 
-# dat_wages_plt <- dat_wages$dat_wages |> 
-#   filter(own_title != "Total Covered")
-# 
-# dat_wages_plt_lbl <- dat_wages_plt |> 
-#   filter(date == yq("2003-01"))
-# 
-# dat_wages_plt_end <- dat_wages_plt |> 
-#   filter(date == max(date)) |> 
-#   mutate(mylabel = prettyNum(round(avg_wkly_wage, 0), big.mark = ","))
-# 
-# chart_begin <- min(dat_wages_plt$date)
-# chart_end <- max(dat_wages_plt$date)
-# 
-# ggplot(data = dat_wages_plt) +
-#   geom_rect(
-#     data = filter(recess_wide, begin >= chart_begin, begin <= chart_end),
-#     mapping = aes(
-#       xmin = begin,
-#       xmax = end,
-#       ymin = -Inf,
-#       ymax = Inf
-#     ),
-#     fill = "blue",
-#     alpha = 0.2
-#   ) +
-#   geom_line(mapping = aes(x = date, y = avg_wkly_wage, color = own_title, linetype = own_title), show.legend = FALSE, linewidth = 0.8) +
-#   geom_label_repel(data = dat_wages_plt_lbl, mapping = aes(x = date, y = avg_wkly_wage, label = own_title)) +
-#   geom_text_repel(data = dat_wages_plt_end, mapping = aes(x = date, y = avg_wkly_wage, 
-#                                                           label = mylabel)) +
-#   labs(x = "", y = "Today's dollars", title = "Kern, average weekly wages") +
-#   theme_minimal() +
-#   scale_color_viridis_d(begin = 0.0, end = 0.9) +
-#   scale_y_continuous(labels = scales::label_comma())
-
-# tar_load(recess_wide)
-# tar_load(dat_empl)

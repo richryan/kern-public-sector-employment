@@ -1,16 +1,29 @@
 ---
-title: "Public-sector employment in Kern County, California"
-author: "Rich Ryan"
+title: |
+  Public-sector employment in \
+  Kern County, California
+thanks: "Department of Economics, California State University, Bakersfield. Email: \\href{emailto:richryan@csub.edu}{richryan@csub.edu}."
+date: October 30, 2025
+date-format: long
+author: 
+  - name: Rich Ryan
+    corresponding: true
+    affiliations:
+      - name: California State University, Bakersfield
 format:
   pdf:
+    documentclass: scrartcl
     toc: false
     number-sections: true
     colorlinks: true
+    template-partials:
+      - title.tex
 # format:
 #   docx:
 #     toc: false
 #     number-sections: true
 #     highlight-style: github
+#     colorlink: true
 fig-cap-location: bottom
 ---
 
@@ -19,30 +32,200 @@ fig-cap-location: bottom
 #| include: false
 library(targets)
 source("R/packages.R")
+
+tar_load(plt_shares)
+
+plt_shares_date_start <- min(plt_shares$dat$date)
+plt_shares_date_end <- max(plt_shares$dat$date)
+plt_shares_caption <- paste0("Shares of public-sector employment in Kern County, California, ", 
+                           month(plt_shares_date_start, label = TRUE, abbr = FALSE), " ",
+                           year(plt_shares_date_start), " to ", 
+                           month(plt_shares_date_end, label = TRUE, abbr = FALSE), " ",
+                           year(plt_shares_date_end))
+
+plt_shares_end <- filter(plt_shares$dat, date == max(date))
+
+tar_load(plt_wages)
+dat_wages <- plt_wages$dat
+plt_wages_date_start <- min(plt_wages$dat$date)
+plt_wages_date_end <- max(plt_wages$dat$date)
+dat_wages_end <- filter(dat_wages, date == max(date)) |> 
+  ungroup() |> 
+  mutate(federal_ratio = 100 * avg_wkly_wage / max(avg_wkly_wage * (own_title == "Federal Government")))
+
+plt_wages_caption_1 <- paste0("Sectoral wages in Kern County, California, ", 
+                           year(plt_wages_date_start), " quarter ",
+                           quarter(plt_wages_date_start),
+                           " to ", 
+                           year(plt_wages_date_end), " quarter ",
+                           quarter(plt_wages_date_end), "."
+                           )
+plt_wages_caption_2 <- "Deflated by personal-consumption expenditures price index."
+plt_wages_caption <- paste(plt_wages_caption_1, plt_wages_caption_2)
 ```
 
 # Introduction
 
+On September 30, 2025, the
+director of the Office of Management and Budget,
+Russell Vought,
+sent a [memorandum](https://www.whitehouse.gov/wp-content/uploads/2025/09/M-25-35-Status-of-Agency-Operations.pdf) to the heads of executive departments and agencies within the US government.
+The memorandum informed the heads that
+appropriations for the fiscal year ending at 11:59 p.m. that evening would expire.
+<!-- which would trigger a government shutdown. -->
+Affected agencies were instructed to "execute their plans for an orderly shutdown."
+
+Appropriations are laws of Congress that grant agencies the power to govern money.
+When those powers expired at midnight,
+agencies were required to furlough many federal workers.
+While these workers will be paid retroactively in accordance with a 2019 law,
+the absence of paychecks and continued interest in reducing the size of the federal workforce
+will affect the economy in Kern County, California.
+<!-- the shutdown will affect the economy in Kern County, California. -->
+
+To partially understand the effect the shutdown will have on Kern's economy,
+I investigate how employment is allocated across the public and private sectors using
+<!-- composition of employment using  -->
+data from the Quarterly Census of Employment and Wages.
+<!-- In brief, -->
+A main message is that, in Kern County,
+
+* out of every 100 jobs, 
+`r round(filter(plt_shares_end, own_title == "Federal Government") |> pull(share), 0)` are part of the federal government, whereas
+`r round(100 - sum(plt_shares_end$share), 0)` are in the private sector; and
+* federal employees earn, on average, each week
+$`r prettyNum(round(filter(dat_wages_end, own_title == "Federal Government") |> pull(avg_wkly_wage), 0), big.mark = ",")`.
+
+
+The remainder of this article describes how these statistics were computed.
+Replication materials, including data on private-sector employment and public-sector employment at the federal, state, and local levels,
+<!-- the data used to construct figures [-@fig-empl] and [-@fig-shares], -->
+are available at 
+[https://github.com/richryan/kern-public-sector-employment](https://github.com/richryan/kern-public-sector-employment).
+
+<!-- What effect will the shutdown have on Kern's economy? -->
+<!-- The answer to that question is impossible to know. -->
+<!-- The answer to a related question, however, may give a hint at the effect. -->
+<!-- Using data from the -->
+
+
+<!-- These workers were sent home without pay, -->
+<!-- prevented from even volunteering their services to -->
+<!-- ensure Congress retains the power of the purse. -->
+
+<!-- What does this mean for the economy in Kern County, California? -->
+<!-- While the answer to this question is unknowable, -->
+<!-- the answer to a related question  -->
+
 # Public-sector employment in Kern County, California
+
+The Quarterly Census of Employment and Wages program of the US Bureau of Labor Statistics 
+covers "[more than 95 percent of U.S. jobs](https://www.bls.gov/opub/hom/cew/),"
+which makes the data suitable to investigate employment at the county level.
+The employment data are published at a monthly frequency and are available by ownership type.
+Employment is the count of filled jobs,
+regardless of 
+whether the position is full or part time or
+whether the position is temporary or permanent.[^seasadj]
+
+[^seasadj]: All the time series are seasonally adjusted using the US Census Bureau’s X-13ARIMA-SETS procedure.
+
+```{r}
+#| include: false
+tar_load(plt_empl)
+plt_empl_date_start <- min(plt_empl$dat$date)
+plt_empl_date_end <- max(plt_empl$dat$date)
+plt_empl_caption <- paste0("Public-sector employment in Kern County, California, ", 
+                           month(plt_empl_date_start, label = TRUE, abbr = FALSE), " ",
+                           year(plt_empl_date_start), " to ", 
+                           month(plt_empl_date_end, label = TRUE, abbr = FALSE), " ",
+                           year(plt_empl_date_end))
+
+# Levels
+plt_empl_private_end <- filter(plt_empl$dat, date == max(date), own_title == "Private") |> pull(empl)
+plt_empl_public_end <- filter(plt_empl$dat, date == max(date), own_title != "Private") |> 
+  ungroup() |>
+  summarise(empl = sum(empl))
+plt_empl_jobs <- filter(plt_empl$dat, date == max(date))
+
+print_jobs <- function(x) {
+  prettyNum(round(x, digits = 0), big.mark = ",")
+}
+```
+
+
+Employment across the private and public sectors is shown in figure [-@fig-empl].
+Public-sector employment includes government workers at the
+federal, state, and local levels.
+Figure [-@fig-empl] indicates that most jobs are in the private sector.
+In `r month(plt_empl_date_end, label = TRUE, abbr = FALSE)` `r year(plt_empl_date_end)`, there were
+`r prettyNum(round(plt_empl_private_end, 0), big.mark = ",")` jobs in the private sector and 
+`r prettyNum(round(plt_empl_public_end, 0), big.mark = ",")` jobs in the public sector.
+
+The majority of public-sector jobs are in local government.
+These include
+[jobs](https://www.bls.gov/spotlight/2021/occupational-employment-and-wages-in-state-and-local-government/home.htm) 
+held by teachers and workers who provide administrative support.
+In `r month(plt_empl_date_end, label = TRUE, abbr = FALSE)` `r year(plt_empl_date_end)`, 
+public-sector employment comprised
+`r print_jobs(filter(plt_empl_jobs, own_title == "Local Government") |> pull(empl))` jobs in local government,
+`r print_jobs(filter(plt_empl_jobs, own_title == "Federal Government") |> pull(empl))` jobs in federal government, and
+`r print_jobs(filter(plt_empl_jobs, own_title == "State Government") |> pull(empl))` jobs in state government.
 
 ```{r}
 #| echo: false
 #| label: fig-empl
-#| fig-cap: "Public-sector employment in Kern County, California."
-tar_load(plt_empl)
-plt_empl
+#| fig-cap: !expr plt_empl_caption
+plt_empl$plt
 ```
 
+Just `r round(filter(plt_shares_end, own_title == "Federal Government") |> pull(share), 1)` percent of jobs
+are held by federal workers.
+This statistic can be seen in figure [-@fig-shares],
+which plots public-sector employment as a percentage of total employment.
+In contrast to federal jobs,
+`r round(filter(plt_shares_end, own_title == "Local Government") |> pull(share), 1)` percent of jobs are at the local level and
+`r round(filter(plt_shares_end, own_title == "State Government") |> pull(share), 1)` percent of jobs are at the state level.
 
 ```{r}
 #| echo: false
 #| label: fig-shares
-#| fig-cap: "Public-sector employment in Kern County, California."
-tar_load(plt_shares)
-plt_shares
+#| fig-cap: !expr plt_shares_caption
+plt_shares$plt
 ```
 
+# Wages across the public and private sectors in Kern County, California
 
-# Average weekly wages in public-sector jobs
+In addition to data on employment,
+the QCEW program also publishes data on wages.
+These data are available at a quarterly frequency.
+Wages refer to [total compensation](https://www.bls.gov/opub/hom/cew/),
+"including bonuses, 
+stock options, severance pay, profit distributions, 
+the cash value of meals and lodging, tips and other gratuities, and, in some states, employer contributions to certain deferred compensation plans (such as 401(k) plans)."
+The average weekly wage reports the ratio of total compensation paid during the quarter to average employment over the quarter 
+divided by 13, for the 13 weeks in the quarter.
+
+```{r}
+#| echo: false
+#| label: fig-wages
+#| fig-cap: !expr plt_wages_caption
+plt_wages$plt
+```
+
+Average weekly wages by sector are reported in figure [-@fig-wages].
+
 
 # Conclusion
+
+Across Kern each month,
+workers earn paychecks by producing goods and structures or providing services.
+The goods, services, and structures are purchased 
+using funds that come out of workers' paychecks.
+This circular flow is threatened by the government shutdown.
+Even though just 
+`r round(filter(plt_shares_end, own_title == "Federal Government") |> pull(share), 1)` 
+percent of workers  are employed by the federal government in Kern,
+the complex linkages  that connect various forms of economic activity may magnify the 
+postponement of income allocated to federal workers.
+
