@@ -1,6 +1,6 @@
 ---
 title: |
-  Public-sector employment in \
+  Public-sector employment and wages in \
   Kern County, California
 thanks: "Department of Economics, California State University, Bakersfield. Email: \\href{emailto:richryan@csub.edu}{richryan@csub.edu}."
 date: October 30, 2025
@@ -13,6 +13,7 @@ author:
 format:
   pdf:
     documentclass: scrartcl
+    fontsize: 12pt
     toc: false
     number-sections: true
     colorlinks: true
@@ -51,7 +52,7 @@ plt_wages_date_start <- min(plt_wages$dat$date)
 plt_wages_date_end <- max(plt_wages$dat$date)
 dat_wages_end <- filter(dat_wages, date == max(date)) |> 
   ungroup() |> 
-  mutate(federal_ratio = 100 * avg_wkly_wage / max(avg_wkly_wage * (own_title == "Federal Government")))
+  mutate(federal_ratio = 100 * (avg_wkly_wage / max(avg_wkly_wage * (own_title == "Private")) - 1))
 
 plt_wages_caption_1 <- paste0("Sectoral wages in Kern County, California, ", 
                            year(plt_wages_date_start), " quarter ",
@@ -67,11 +68,12 @@ plt_wages_caption <- paste(plt_wages_caption_1, plt_wages_caption_2)
 # Introduction
 
 On September 30, 2025, the
-director of the Office of Management and Budget,
-Russell Vought,
-sent a [memorandum](https://www.whitehouse.gov/wp-content/uploads/2025/09/M-25-35-Status-of-Agency-Operations.pdf) to the heads of executive departments and agencies within the US government.
-The memorandum informed the heads that
-appropriations for the fiscal year ending at 11:59 p.m. that evening would expire.
+the heads of executive departments and agencies within the US government received a 
+[memorandum](https://www.whitehouse.gov/wp-content/uploads/2025/09/M-25-35-Status-of-Agency-Operations.pdf)
+from the director of the Office of Management and Budget, Russell Vought.
+The memorandum informed them that
+<!-- the heads that -->
+appropriations for the fiscal year ending at 11:59 p.m.\ that evening would expire.
 <!-- which would trigger a government shutdown. -->
 Affected agencies were instructed to "execute their plans for an orderly shutdown."
 
@@ -80,7 +82,8 @@ When those powers expired at midnight,
 agencies were required to furlough many federal workers.
 While these workers will be paid retroactively in accordance with a 2019 law,
 the absence of paychecks and continued interest in reducing the size of the federal workforce
-will affect the economy in Kern County, California.
+will affect the economy in Kern.
+<!-- County, California. -->
 <!-- the shutdown will affect the economy in Kern County, California. -->
 
 To partially understand the effect the shutdown will have on Kern's economy,
@@ -88,17 +91,19 @@ I investigate how employment is allocated across the public and private sectors 
 <!-- composition of employment using  -->
 data from the Quarterly Census of Employment and Wages.
 <!-- In brief, -->
-A main message is that, in Kern County,
+A main message is that, in Kern,
 
 * out of every 100 jobs, 
 `r round(filter(plt_shares_end, own_title == "Federal Government") |> pull(share), 0)` are part of the federal government, whereas
-`r round(100 - sum(plt_shares_end$share), 0)` are in the private sector; and
-* federal employees earn, on average, each week
-$`r prettyNum(round(filter(dat_wages_end, own_title == "Federal Government") |> pull(avg_wkly_wage), 0), big.mark = ",")`.
-
+`r round(100 - sum(plt_shares_end$share), 0)` are in the private sector; and,
+* on average, federal employees earn 
+$`r prettyNum(round(filter(dat_wages_end, own_title == "Federal Government") |> pull(avg_wkly_wage), 0), big.mark = ",")` per week, compared to
+$`r prettyNum(round(filter(dat_wages_end, own_title == "Private") |> pull(avg_wkly_wage), 0), big.mark = ",")`
+in the private sector. 
 
 The remainder of this article describes how these statistics were computed.
-Replication materials, including data on private-sector employment and public-sector employment at the federal, state, and local levels,
+Replication materials, including data on employment and wages,
+<!-- private-sector employment and public-sector employment at the federal, state, and local levels, -->
 <!-- the data used to construct figures [-@fig-empl] and [-@fig-shares], -->
 are available at 
 [https://github.com/richryan/kern-public-sector-employment](https://github.com/richryan/kern-public-sector-employment).
@@ -135,7 +140,7 @@ whether the position is temporary or permanent.[^seasadj]
 tar_load(plt_empl)
 plt_empl_date_start <- min(plt_empl$dat$date)
 plt_empl_date_end <- max(plt_empl$dat$date)
-plt_empl_caption <- paste0("Public-sector employment in Kern County, California, ", 
+plt_empl_caption <- paste0("Private and public-sector employment in Kern County, California, ", 
                            month(plt_empl_date_start, label = TRUE, abbr = FALSE), " ",
                            year(plt_empl_date_start), " to ", 
                            month(plt_empl_date_end, label = TRUE, abbr = FALSE), " ",
@@ -180,7 +185,7 @@ plt_empl$plt
 ```
 
 Just `r round(filter(plt_shares_end, own_title == "Federal Government") |> pull(share), 1)` percent of jobs
-are held by federal workers.
+are held by federal workers in Kern.
 This statistic can be seen in figure [-@fig-shares],
 which plots public-sector employment as a percentage of total employment.
 In contrast to federal jobs,
@@ -199,10 +204,10 @@ plt_shares$plt
 In addition to data on employment,
 the QCEW program also publishes data on wages.
 These data are available at a quarterly frequency.
-Wages refer to [total compensation](https://www.bls.gov/opub/hom/cew/),
-"including bonuses, 
-stock options, severance pay, profit distributions, 
-the cash value of meals and lodging, tips and other gratuities, and, in some states, employer contributions to certain deferred compensation plans (such as 401(k) plans)."
+<!-- Wages refer to [total compensation](https://www.bls.gov/opub/hom/cew/), -->
+<!-- "including bonuses,  -->
+<!-- stock options, severance pay, profit distributions,  -->
+<!-- the cash value of meals and lodging, tips and other gratuities, and, in some states, employer contributions to certain deferred compensation plans (such as 401(k) plans)." -->
 The average weekly wage reports the ratio of total compensation paid during the quarter to average employment over the quarter 
 divided by 13, for the 13 weeks in the quarter.
 
@@ -214,7 +219,47 @@ plt_wages$plt
 ```
 
 Average weekly wages by sector are reported in figure [-@fig-wages].
+The series are transformed into today's dollars using
+the personal-consumption expenditures price index.
+On average, government workers earn more than private-sector workers.
+In quarter 
+`r quarter(max(dat_wages_end$date))` of `r  year(max(dat_wages_end$date))`,
+for example, 
+the average weekly wage of federal workers was
+`r round(filter(dat_wages_end, own_title == "Federal Government") |> pull(federal_ratio), 0)` percent
+higher than 
+the average weekly wage of workers in the private sector.
 
+```{r}
+#| include: false
+dat_empl_qtr <- plt_empl$dat |> 
+  mutate(year = year(date),
+         quarter = quarter(date)) |> 
+  group_by(year, quarter, own_title) |> 
+  summarise(empl = mean(empl)) |> 
+  mutate(date = yq(paste(year, quarter, sep = "-")))
+
+dat_empl_wage <- dat_empl_qtr |> 
+  left_join(dat_wages, join_by(date, own_title)) |> 
+  ungroup() |> 
+  filter(date == max(date)) |> 
+  mutate(wage_bill = empl * avg_wkly_wage) |> 
+  select(date, own_title, wage_bill)
+
+wage_bill_tot <- sum(dat_empl_wage$wage_bill)
+wage_bill_tot_less_federal <- wage_bill_tot - filter(dat_empl_wage, own_title == "Federal Government") |> pull(wage_bill)
+```
+
+The wage bill is the amount paid by firms to employees.
+In `r year(unique(dat_empl_wage$date))`
+quarter `r quarter(unique(dat_empl_wage$date))`, 
+the wage bill averaged 
+$`r round(wage_bill_tot / 1000000, 0)` million per week across both the public and private sectors.
+Using this statistic,
+if all federal workers were left unpaid,
+then the wage bill would be reduced by 
+`r round(abs(100 *(wage_bill_tot_less_federal - wage_bill_tot)/wage_bill_tot), 0)` percent.
+This statistic represents an upper bound on amount of delayed wage payments. 
 
 # Conclusion
 
@@ -223,9 +268,14 @@ workers earn paychecks by producing goods and structures or providing services.
 The goods, services, and structures are purchased 
 using funds that come out of workers' paychecks.
 This circular flow is threatened by the government shutdown.
-Even though just 
-`r round(filter(plt_shares_end, own_title == "Federal Government") |> pull(share), 1)` 
-percent of workers  are employed by the federal government in Kern,
-the complex linkages  that connect various forms of economic activity may magnify the 
-postponement of income allocated to federal workers.
+
+As [James Madison](https://avalon.law.yale.edu/18th_century/fed58.asp) put it,
+the House of Representatives "hold[s] the purse."
+They propose the "supplies requisite for the support of government."
+They also owe us the "just and salutary" measures they were elected to carry into effect.
+<!-- Even though just  -->
+<!-- `r round(filter(plt_shares_end, own_title == "Federal Government") |> pull(share), 1)`  -->
+<!-- percent of workers  are employed by the federal government in Kern, -->
+<!-- the complex linkages that connect various forms of economic activity may magnify the  -->
+<!-- postponement of income allocated to federal workers. -->
 
